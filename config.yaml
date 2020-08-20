@@ -1,0 +1,6 @@
+DNSPOD:
+  ID: dnspod_id
+  Token: dnspod_token
+  domain: 域名
+  sub_domain: 二级域名,如果没有填@
+  myipAPI: https://api.py3c.net/myip
