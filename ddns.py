@@ -1,7 +1,8 @@
 import yaml
 import requests
 import time
-import logging, sys
+import logging
+import sys
 logging.basicConfig(level=logging.INFO, stream=sys.stdout,
                     format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
                     datefmt='%y/%m/%d %H:%M:%S')
@@ -31,10 +32,12 @@ class DDNS:
         myipAPI 获取公网IP接口
         """
         self.config = self.loadConfig()
-        self.login_token = str(self.config.get("ID")) + "," + self.config.get("Token")
+        self.login_token = str(self.config.get("ID")) + \
+            "," + self.config.get("Token")
         self.format = "json"
         self.lang = "cn"
-        self.headers = {"User-Agent": "MJJ DDNS Python/1.0.0 (apiapi@foxmail.com)"}
+        self.headers = {
+            "User-Agent": "MJJ DDNS Python/1.0.0 (apiapi@foxmail.com)"}
         self.myipApi = self.config.get("myipAPI")
         self.data = {
             "login_token": self.login_token,
@@ -42,7 +45,8 @@ class DDNS:
             "lang": self.lang,
         }
         self.record_id, self.record_value = self.getRecordInfo()
-    #读取本地配置文件
+    # 读取本地配置文件
+
     def loadConfig(self):
         with open("config.yaml", "r", encoding="utf8") as file:
             dnspod = yaml.safe_load(file).get("DNSPOD")
@@ -51,8 +55,12 @@ class DDNS:
 
     # 获取公网IP
     def getMyIP(self):
-        ip = requests.get(self.myipApi).text
-        logging.info("你的公网IP是:%s", ip)
+        try:
+            ip = requests.get(self.myipApi).text
+            logging.info("你的公网IP是:%s", ip)
+        except:
+            logging.info("请求ip失败")
+            return None
         return ip
 
     # 获取更新记录所需要的
@@ -60,23 +68,25 @@ class DDNS:
         recordList = self.getRecordList()
         for record in recordList["records"]:
             if record.get("name") == self.config.get("sub_domain"):
-                record_id, record_value = (record.get("id"), record.get("value"))
-                logging.info("获取record信息成功,id:%s value:%s",record_id, record_value)
+                record_id, record_value = (
+                    record.get("id"), record.get("value"))
+                logging.info("获取record信息成功,id:%s value:%s",
+                             record_id, record_value)
                 return (record_id, record_value)
 
-
     # 更新记录
+
     def updateRecord(self, myip):
         url = "https://dnsapi.cn/Record.Modify"
         data = self.data.copy()
         data.update({
-                "domain": self.config.get("cionfig"),
-                "record_id": self.record_id,
-                "sub_domain": self.config.get("sub_domain"),
-                "record_type": "A",
-                "record_line": "默认",
-                "value": myip,
-            })
+            "domain": self.config.get("cionfig"),
+            "record_id": self.record_id,
+            "sub_domain": self.config.get("sub_domain"),
+            "record_type": "A",
+            "record_line": "默认",
+            "value": myip,
+        })
         try:
             resp = requests.post(url, headers=self.headers, data=data).json()
             if resp["status"]["code"] == "1":
@@ -93,7 +103,8 @@ class DDNS:
             # "sub_domain": self.config.get("sub_domain"),
         })
         try:
-            dataJson = requests.post(url, headers=self.headers, data=data).json()
+            dataJson = requests.post(
+                url, headers=self.headers, data=data).json()
             logging.info("dns域名列表记录获取成功")
         except:
             logging.info("dns接口获取失败")
@@ -103,6 +114,8 @@ class DDNS:
     # 循环检测IP是否变更, 如果变更就更新
     def testingIP(self):
         myip = self.getMyIP()
+        if myip == None:
+            return
         if myip not in self.record_value:
             self.updateRecord(myip)
             self.record_value = myip
