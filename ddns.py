@@ -37,7 +37,7 @@ class DDNS:
         self.format = "json"
         self.lang = "cn"
         self.headers = {
-            "User-Agent": "MJJ DDNS Python/1.0.0 (apiapi@foxmail.com)"}
+            "User-Agent": "ddns V1.0.1 (apiapi@foxmail.com)"}
         self.myipApi = self.config.get("myipAPI")
         self.data = {
             "login_token": self.login_token,
